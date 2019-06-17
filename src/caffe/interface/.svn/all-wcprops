@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/app/search/vis/!svn/ver/32773/trunk/product-search/caffe-master/caffewrapper/interface
+END
+export.sym
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/app/search/vis/!svn/ver/29270/trunk/product-search/caffe-master/caffewrapper/interface/export.sym
+END
+caffe_interface.h
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/app/search/vis/!svn/ver/32773/trunk/product-search/caffe-master/caffewrapper/interface/caffe_interface.h
+END
+export.map
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/app/search/vis/!svn/ver/32771/trunk/product-search/caffe-master/caffewrapper/interface/export.map
+END
+caffe_interface.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/app/search/vis/!svn/ver/32773/trunk/product-search/caffe-master/caffewrapper/interface/caffe_interface.cpp
+END

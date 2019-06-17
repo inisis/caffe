@@ -1,0 +1,13 @@
+{
+	global:
+	extern "C++" {
+		*initcaffeglobal*;
+		*createcaffepredict*;
+		*createcaffepreprocess*;
+		*createcaffeblob*;
+		*testcaffework*;
+		*createcaffelayerdatas*;
+		      };
+	local:
+		*;
+};
