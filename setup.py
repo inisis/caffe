@@ -155,7 +155,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="brocolli-caffe",
-    version="3.0.0",
+    version="4.0.0",
     author="desmond",
     author_email="desmond.yao@buaa.edu.cn",
     description="official caffe, commit id 9b891540183ddc834a02b2bd81b31afae71b2153",
