@@ -17,7 +17,7 @@ if(HAVE_CUDA)
   list(APPEND srcs ${cuda_objs} ${cuda})
 endif()
 
-add_library(caffe ${srcs})
+add_library(caffe STATIC ${srcs})
 target_link_libraries(caffe PRIVATE proto -lglog -lprotobuf -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lhdf5_hl -lhdf5 -lopenblas)
 caffe_default_properties(caffe)
 target_include_directories(caffe PUBLIC

@@ -5,7 +5,6 @@ import platform
 import subprocess
 import setuptools
 from setuptools import setup, Extension, find_packages
-from distutils.version import LooseVersion
 from shutil import copyfile, copymode, move
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install_lib import install_lib
@@ -73,12 +72,12 @@ class InstallCMakeLibs(install_lib):
 
         for root, _, files in os.walk(lib_dir):
             for _lib in files:
-                if os.path.isfile(os.path.join(root, _lib)) and _lib.endswith(".so"):
+                if os.path.isfile(os.path.join(root, _lib)) and (_lib.startswith("libcaffe") or _lib.startswith("_caffe")) and os.path.isfile(os.path.join(root, _lib)):
                     libs.append(os.path.join(root, _lib))
 
         for lib in libs:
-            move(lib, os.path.join(self.build_dir, 'caffe',
-                                          os.path.basename(lib)))
+            move(lib, os.path.join(self.build_dir, 'caffe', os.path.basename(lib)))
+
         # Mark the libs for installation, adding them to
         # distribution.data_files seems to ensure that setuptools' record
         # writer appends them to installed-files.txt in the package's egg-info
@@ -96,10 +95,8 @@ class InstallCMakeLibs(install_lib):
         # step; depending on the files that are generated from your cmake
         # build chain, you may need to modify the below code
 
-        self.distribution.data_files = [os.path.join(self.install_dir, 'caffe',
-                                                     os.path.basename(lib))
+        self.distribution.data_files = [os.path.join(self.install_dir, 'caffe', os.path.basename(lib))
                                         for lib in libs]
-
         # Must be forced to run after adding the libs to data_files
 
         self.distribution.run_command("install_data")
@@ -131,9 +128,12 @@ class CMakeBuild(build_ext):
     def build_extension(self, ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)    
+            
+        extpath = os.path.abspath(self.get_ext_fullpath(ext.name))
         
         bin_dir = os.path.abspath(os.path.join(self.build_temp, 'install'))
-        lib_dir = os.path.abspath('python')
+        lib_dir = os.path.abspath(os.path.join(self.build_temp, 'lib'))
+
         self.distribution.bin_dir = bin_dir
         self.distribution.lib_dir = lib_dir
         install_command = ["conda", "install", "cmake==3.18.2", "boost", "openblas", "gflags", "glog", "lmdb", "leveldb",
@@ -150,11 +150,15 @@ class CMakeBuild(build_ext):
         if subprocess.call(cmake_command) != 0:
             sys.exit(-1)      
 
+        cmake_command = ['cmake', "--install", self.build_temp, '--prefix', bin_dir]
+        if subprocess.call(cmake_command) != 0:
+            sys.exit(-1)   
+
         print()  # Add an empty line for cleaner output
 
 setup(
     name="brocolli-caffe",
-    version="5.0.0",
+    version="7.0.0",
     author="desmond",
     author_email="desmond.yao@buaa.edu.cn",
     description="official caffe, commit id 9b891540183ddc834a02b2bd81b31afae71b2153",
