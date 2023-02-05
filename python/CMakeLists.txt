@@ -7,7 +7,7 @@ include_directories(${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${Boost_INCLUDE_
 file(GLOB_RECURSE python_srcs ${PROJECT_SOURCE_DIR}/python/*.cpp)
 
 add_library(pycaffe SHARED ${python_srcs})
-target_link_libraries(pycaffe ${Caffe_LINK} ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(pycaffe caffe -lglog -lprotobuf -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lboost_python -lhdf5_hl -lhdf5 -lopenblas)
 set_target_properties(pycaffe PROPERTIES PREFIX "" OUTPUT_NAME "_caffe")
 caffe_default_properties(pycaffe)
 
@@ -37,4 +37,3 @@ install(DIRECTORY caffe
 
 # _caffe.so
 install(TARGETS pycaffe  DESTINATION python/caffe)
-

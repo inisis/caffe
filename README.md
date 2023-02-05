@@ -16,6 +16,5 @@ pip install brocolli-caffe
 
 # How to use
 ```
-PYVER=$(python -c "import sys; print('python{}.{}'.format(*sys.version_info))")
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/$PYVER/site-packages/caffe:$CONDA_PREFIX/lib
+python -c "import caffe; print(caffe.__version__)"
 ```

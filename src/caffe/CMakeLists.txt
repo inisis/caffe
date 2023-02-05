@@ -18,8 +18,11 @@ if(HAVE_CUDA)
 endif()
 
 add_library(caffe ${srcs})
-target_link_libraries(caffe proto ${Caffe_LINKER_LIBS})
+target_link_libraries(caffe PRIVATE proto -lglog -lprotobuf -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lhdf5_hl -lhdf5 -lopenblas)
 caffe_default_properties(caffe)
+target_include_directories(caffe PUBLIC
+                                 $<BUILD_INTERFACE:${Caffe_INCLUDE_DIR}>
+                                 $<INSTALL_INTERFACE:include>)
 set_target_properties(caffe PROPERTIES
     VERSION   ${CAFFE_TARGET_VERSION}
     SOVERSION ${CAFFE_TARGET_SOVERSION}
@@ -29,12 +32,10 @@ set_target_properties(caffe PROPERTIES
  add_subdirectory(test)
 
 # ---[ Install
-install(DIRECTORY ${Caffe_INCLUDE_DIR}/caffe DESTINATION include)
-install(FILES ${proto_hdrs} DESTINATION include/caffe/proto)
-install(TARGETS caffe proto EXPORT CaffeTargets DESTINATION lib)
+install(DIRECTORY ${Caffe_INCLUDE_DIR}/caffe DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${proto_hdrs} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/caffe/proto)
+install(TARGETS caffe proto EXPORT CaffeTargets DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 file(WRITE ${PROJECT_BINARY_DIR}/__init__.py)
 list(APPEND proto_python ${PROJECT_BINARY_DIR}/__init__.py)
 install(PROGRAMS ${proto_python} DESTINATION python/caffe/proto)
-
-

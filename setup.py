@@ -123,39 +123,38 @@ class CMakeBuild(build_ext):
             raise RuntimeError("python 3 is required, but got python2")
 
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)',
-                                         out.decode()).group(1))
-            if cmake_version < '3.1.0':
-                raise RuntimeError("CMake >= 3.1.0 is required on Windows")
+            raise RuntimeError("Windows is not supported")
 
         for ext in self.extensions:
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        bin_dir = os.path.abspath('temp')
+        if not os.path.exists(self.build_temp):
+            os.makedirs(self.build_temp)    
+        
+        bin_dir = os.path.abspath(os.path.join(self.build_temp, 'install'))
         lib_dir = os.path.abspath('python')
         self.distribution.bin_dir = bin_dir
         self.distribution.lib_dir = lib_dir
-        install_command = ["conda", "install", "boost", "openblas", "gflags", "glog", "lmdb", "leveldb",
+        install_command = ["conda", "install", "cmake==3.18.2", "boost", "openblas", "gflags", "glog", "lmdb", "leveldb",
                             "h5py", "hdf5", "scikit-image", "protobuf==3.19.1", "six"]
         if subprocess.call(install_command) != 0:
             sys.exit(-1)
-
-        make_proto = ['make', 'proto']
-        if subprocess.call(make_proto) != 0:
-            sys.exit(-1)
         
         python_version = 'python{}.{}'.format(*sys.version_info)
-        make_command = ['make', 'pycaffe', '-j4', 'ANACONDA_HOME='+os.environ['CONDA_PREFIX'], 'PYTHON_VERSION='+python_version]
-
-        if subprocess.call(make_command) != 0:
+        cmake_command = ['cmake', '-DANACONDA_HOME='+os.environ['CONDA_PREFIX'], '-DPYTHON_VERSION='+python_version, "-B", self.build_temp]
+        if subprocess.call(cmake_command) != 0:
             sys.exit(-1)            
+
+        cmake_command = ['cmake', "--build", self.build_temp, '-j4']
+        if subprocess.call(cmake_command) != 0:
+            sys.exit(-1)      
 
         print()  # Add an empty line for cleaner output
 
 setup(
     name="brocolli-caffe",
-    version="4.0.0",
+    version="5.0.0",
     author="desmond",
     author_email="desmond.yao@buaa.edu.cn",
     description="official caffe, commit id 9b891540183ddc834a02b2bd81b31afae71b2153",

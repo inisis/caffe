@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.18)
 if(POLICY CMP0046)
   cmake_policy(SET CMP0046 NEW)
 endif()
@@ -14,9 +14,12 @@ set(CAFFE_TARGET_VERSION "1.0.0" CACHE STRING "Caffe logical version")
 set(CAFFE_TARGET_SOVERSION "1.0.0" CACHE STRING "Caffe soname version")
 add_definitions(-DCAFFE_VERSION=${CAFFE_TARGET_VERSION})
 
+set(ANACONDA_HOME /root/miniconda3 CACHE STRING  "Default anaconda home")
+set(PYTHON_VERSION python3.7 CACHE STRING  "Default python version")
+add_definitions( -DCPU_ONLY=1 )
+
 # ---[ Using cmake scripts and modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
-
 include(ExternalProject)
 include(GNUInstallDirs)
 
@@ -27,23 +30,23 @@ include(cmake/Summary.cmake)
 include(cmake/ConfigGen.cmake)
 
 # ---[ Options
-caffe_option(CPU_ONLY  "Build Caffe without CUDA support" OFF) # TODO: rename to USE_CUDA
-caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF NOT CPU_ONLY)
+caffe_option(CPU_ONLY  "Build Caffe without CUDA support" ON)
+caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" OFF)
 caffe_option(USE_NCCL "Build Caffe with NCCL library support" OFF)
 caffe_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 caffe_option(BUILD_python "Build Python wrapper" ON)
-set(python_version "2" CACHE STRING "Specify which Python version to use")
+set(python_version "3" CACHE STRING "Specify which Python version to use")
 caffe_option(BUILD_matlab "Build Matlab wrapper" OFF IF UNIX OR APPLE)
-caffe_option(BUILD_docs   "Build documentation" ON IF UNIX OR APPLE)
-caffe_option(BUILD_python_layer "Build the Caffe Python layer" ON)
-caffe_option(USE_OPENCV "Build with OpenCV support" ON)
-caffe_option(USE_LEVELDB "Build with levelDB" ON)
-caffe_option(USE_LMDB "Build with lmdb" ON)
+caffe_option(BUILD_docs   "Build documentation" OFF)
+caffe_option(BUILD_python_layer "Build the Caffe Python layer" OFF)
+caffe_option(USE_OPENCV "Build with OpenCV support" OFF)
+caffe_option(USE_LEVELDB "Build with levelDB" OFF)
+caffe_option(USE_LMDB "Build with lmdb" OFF)
 caffe_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)
 caffe_option(USE_OPENMP "Link with OpenMP (when your BLAS wants OpenMP and you get linker errors)" OFF)
 
 # This code is taken from https://github.com/sh1r0/caffe-android-lib
-caffe_option(USE_HDF5 "Build with hdf5" ON)
+caffe_option(USE_HDF5 "Build with hdf5" OFF)
 
 # ---[ Dependencies
 include(cmake/Dependencies.cmake)
@@ -51,6 +54,10 @@ include(cmake/Dependencies.cmake)
 # ---[ Flags
 if(UNIX OR APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
+endif()
+
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8 /W3 /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /D_CRT_SECURE_NO_WARNINGS /DNOMINMAX /DHAVE_CXX11_ATOMIC /DOS_WINDOWS")
 endif()
 
 caffe_set_caffe_link()
@@ -61,7 +68,9 @@ if(USE_libstdcpp)
 endif()
 
 # ---[ Warnings
-caffe_warnings_disable(CMAKE_CXX_FLAGS -Wno-sign-compare -Wno-uninitialized)
+if(MSVC)
+  caffe_warnings_disable(CMAKE_CXX_FLAGS -Wno-sign-compare -Wno-uninitialized)
+endif()
 
 # ---[ Config generation
 configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_config.h")
@@ -70,6 +79,9 @@ configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_co
 set(Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(Caffe_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${ANACONDA_HOME}/include ${ANACONDA_HOME}/include/${PYTHON_VERSION} ${ANACONDA_HOME}/include/${PYTHON_VERSION}m ${ANACONDA_HOME}/lib/${PYTHON_VERSION}/site-packages/numpy/core/include)
+
+link_directories(${ANACONDA_HOME}/lib)
 
 # ---[ Includes & defines for CUDA
 
@@ -90,13 +102,13 @@ if(HAVE_CUDA)
 endif()
 
 # ---[ Subdirectories
-add_subdirectory(src/gtest)
+# add_subdirectory(src/gtest)
 add_subdirectory(src/caffe)
-add_subdirectory(tools)
-add_subdirectory(examples)
 add_subdirectory(python)
-add_subdirectory(matlab)
-add_subdirectory(docs)
+# add_subdirectory(matlab)
+# add_subdirectory(docs)
+# add_subdirectory(examples)
+# add_subdirectory(tools)
 
 # ---[ Linter target
 add_custom_target(lint COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
@@ -104,7 +116,6 @@ add_custom_target(lint COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/l
 # ---[ pytest target
 if(BUILD_python)
   add_custom_target(pytest COMMAND python${python_version} -m unittest discover -s caffe/test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/python )
-  add_dependencies(pytest pycaffe)
 endif()
 
 # ---[ uninstall target
