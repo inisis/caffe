@@ -1,7 +1,6 @@
 import numpy as np
 import skimage.io
 from scipy.ndimage import zoom
-from skimage.transform import resize
 
 try:
     # Python3 will most likely not be able to load protobuf

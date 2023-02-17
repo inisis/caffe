@@ -6,8 +6,16 @@ endif()
 include_directories(${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 file(GLOB_RECURSE python_srcs ${PROJECT_SOURCE_DIR}/python/*.cpp)
 
-add_library(pycaffe SHARED ${python_srcs})
-target_link_libraries(pycaffe caffe -lglog -lprotobuf -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lboost_python -lhdf5_hl -lhdf5 -lopenblas)
+caffe_default_properties(proto)
+
+# --[ Caffe library
+
+# creates 'test_srcs', 'srcs', 'test_cuda', 'cuda' lists
+caffe_pickup_caffe_sources(${PROJECT_SOURCE_DIR})
+include_directories(${Caffe_INCLUDE_DIR})
+
+add_library(pycaffe SHARED ${python_srcs} ${srcs})
+target_link_libraries(pycaffe proto -lglog -lprotobuf -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lboost_python -lhdf5_hl -lhdf5 -lopenblas)
 set_target_properties(pycaffe PROPERTIES PREFIX "" OUTPUT_NAME "_caffe")
 caffe_default_properties(pycaffe)
 
