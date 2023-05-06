@@ -105,6 +105,9 @@ class InstallCMakeLibs(install_lib):
 
 class CMakeBuild(build_ext):
     def run(self):
+        if platform.system() == "Windows":
+            raise RuntimeError("Windows is not supported")
+        
         try:
             out = subprocess.check_output(['conda', '--version'])      
         except OSError:
@@ -112,15 +115,21 @@ class CMakeBuild(build_ext):
                 "conda must be installed to build the following extensions: " +
                 ", ".join(e.name for e in self.extensions))
 
+        try:
+            out = subprocess.check_output(['gcc', '-dumpversion'])
+            out = out.decode()
+            if int(out[0]) < 5:
+                raise RuntimeError(
+                    f"compiler version is too low {out}")                
+        except OSError:
+            raise RuntimeError("compiler not install, try apt install build-essential or yum install build-essential")
+
         if sys.version_info.major == 3:
             if sys.version_info.minor > 9 or sys.version_info.minor < 7: 
                 raise RuntimeError(
                     "python version should be within py3.7->py3.9, but got: python{}.{}".format(*sys.version_info))
         else:
             raise RuntimeError("python 3 is required, but got python2")
-
-        if platform.system() == "Windows":
-            raise RuntimeError("Windows is not supported")
 
         for ext in self.extensions:
             self.build_extension(ext)
@@ -137,7 +146,7 @@ class CMakeBuild(build_ext):
         self.distribution.bin_dir = bin_dir
         self.distribution.lib_dir = lib_dir
         install_command = ["conda", "install", "cmake==3.18.2", "boost", "openblas", "gflags", "glog", "lmdb", "leveldb",
-                            "h5py", "hdf5", "scikit-image", "protobuf==3.19.1", "six"]
+                            "h5py", "hdf5", "scikit-image", "protobuf==3.6.1", "six", "numpy==1.20.1"]
         if subprocess.call(install_command) != 0:
             sys.exit(-1)
         
@@ -158,7 +167,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="brocolli-caffe",
-    version="8.0.0",
+    version="9.0.1",
     author="desmond",
     author_email="desmond.yao@buaa.edu.cn",
     description="official caffe, commit id 9b891540183ddc834a02b2bd81b31afae71b2153",
