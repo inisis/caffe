@@ -145,7 +145,7 @@ class CMakeBuild(build_ext):
 
         self.distribution.bin_dir = bin_dir
         self.distribution.lib_dir = lib_dir
-        install_command = ["conda", "install", "cmake==3.18.2", "boost", "openblas", "gflags", "glog", "lmdb", "leveldb",
+        install_command = ["conda", "install", "cmake==3.18.2", "boost", "openblas", "gflags", "glog", "gtest", "lmdb", "leveldb",
                             "h5py", "hdf5", "scikit-image", "protobuf==3.6.1", "six", "numpy==1.20.1"]
         if subprocess.call(install_command) != 0:
             sys.exit(-1)
